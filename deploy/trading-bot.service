@@ -1,0 +1,16 @@
+[Unit]
+Description=Strategy Trader (Alpaca paper/live trading bot)
+After=network.target
+
+[Service]
+Type=simple
+# Change these two paths to match where you put the project and which user should run it
+User=YOUR_LINUX_USER
+WorkingDirectory=/home/YOUR_LINUX_USER/trading-bot
+EnvironmentFile=/home/YOUR_LINUX_USER/trading-bot/.env
+ExecStart=/home/YOUR_LINUX_USER/trading-bot/.venv/bin/gunicorn -w 1 -b 127.0.0.1:8420 run:app
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

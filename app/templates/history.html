@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}History - Strategy Trader{% endblock %}
+{% block content %}
+
+<h1>History</h1>
+
+<div class="tiles">
+  <div class="tile">
+    <p class="label">Total realized P/L</p>
+    <p class="value {{ 'pos' if total_realized >= 0 else 'neg' }}">${{ "%.2f"|format(total_realized) }}</p>
+  </div>
+  <div class="tile"><p class="label">Closed trades</p><p class="value">{{ closed_legs|length }}</p></div>
+</div>
+
+<div class="panel">
+  <h2>Closed trades</h2>
+  <table>
+    <thead><tr><th>Symbol</th><th>Strategy</th><th class="num">Qty</th><th class="num">Entry</th><th class="num">Exit</th><th>Exit reason</th><th class="num">P/L</th></tr></thead>
+    <tbody>
+      {% for leg in closed_legs %}
+      <tr>
+        <td>{{ leg.symbol }}</td>
+        <td>{{ leg.strategy_key }}</td>
+        <td class="num">{{ leg.qty }}</td>
+        <td class="num">${{ "%.2f"|format(leg.entry_price) }} <span class="muted">{{ leg.entry_date }}</span></td>
+        <td class="num">${{ "%.2f"|format(leg.exit_price) }} <span class="muted">{{ leg.exit_date }}</span></td>
+        <td class="muted">{{ leg.exit_reason }}</td>
+        <td class="num {{ 'pos' if leg.realized_pl and leg.realized_pl >= 0 else 'neg' }}">
+          {{ "$%.2f"|format(leg.realized_pl) if leg.realized_pl is not none else "—" }}
+        </td>
+      </tr>
+      {% else %}
+      <tr class="empty-row"><td colspan="7">No closed trades yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2>Full signal log</h2>
+  <table>
+    <thead><tr><th>When</th><th>Symbol</th><th>Strategy</th><th>Signal</th><th>Action</th><th class="num">Price</th><th>Notes</th></tr></thead>
+    <tbody>
+      {% for s in signals %}
+      <tr>
+        <td>{{ s.ts[:16].replace('T',' ') }}</td>
+        <td>{{ s.symbol }}</td>
+        <td>{{ s.strategy_key }}</td>
+        <td class="{{ 'pos' if s.signal=='buy' else ('neg' if s.signal=='sell' else 'muted') }}">{{ s.signal }}</td>
+        <td>{{ s.action_taken }}</td>
+        <td class="num">{{ "$%.2f"|format(s.price) if s.price else "—" }}</td>
+        <td class="muted">{{ s.notes }}</td>
+      </tr>
+      {% else %}
+      <tr class="empty-row"><td colspan="7">Nothing logged yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

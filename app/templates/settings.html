@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Settings - Strategy Trader{% endblock %}
+{% block content %}
+
+<h1>Settings</h1>
+
+<div class="panel">
+  <h2>Account</h2>
+  <table>
+    <tbody>
+      <tr><td>Mode</td><td>{{ 'Paper trading' if paper_mode else 'LIVE trading (real money)' }}</td></tr>
+      <tr><td>API key</td><td><code>{{ masked_key }}</code></td></tr>
+      <tr><td>Trading</td><td>{{ 'Enabled' if trading_enabled else 'Paused' }}</td></tr>
+    </tbody>
+  </table>
+  <p class="muted" style="font-size:0.82rem;">Mode and API keys are set via your <code>.env</code> file, not here - restart the app after changing them.</p>
+</div>
+
+<div class="panel">
+  <h2>Schedule</h2>
+  <table>
+    <tbody>
+      <tr><td>Daily job runs at</td><td>{{ daily_job_time }} {{ daily_job_timezone }}, Mon-Fri</td></tr>
+    </tbody>
+  </table>
+  <p class="muted" style="font-size:0.82rem;">Also set via <code>.env</code> (<code>DAILY_JOB_TIME</code> / <code>DAILY_JOB_TIMEZONE</code>) - restart to apply changes.</p>
+</div>
+
+<div class="panel">
+  <h2>Default risk sizing</h2>
+  <p class="lede" style="margin-bottom:14px;">Used for any watchlist entry that doesn't override ATR window / stop multiplier itself.</p>
+  <form method="post" action="{{ url_for('settings') }}">
+    <div class="field-row">
+      <div class="field">
+        <label for="default_atr_window">Default ATR window</label>
+        <input type="number" id="default_atr_window" name="default_atr_window" value="{{ default_atr_window }}">
+      </div>
+      <div class="field">
+        <label for="default_atr_stop_mult">Default ATR stop multiplier</label>
+        <input type="number" step="0.1" id="default_atr_stop_mult" name="default_atr_stop_mult" value="{{ default_atr_stop_mult }}">
+      </div>
+    </div>
+    <button type="submit">Save</button>
+  </form>
+</div>
+
+{% endblock %}

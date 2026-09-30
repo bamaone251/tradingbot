@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Watchlist - Strategy Trader{% endblock %}
+{% block content %}
+
+<h1>Watchlist</h1>
+<p class="lede">Each row is one symbol + one strategy. Add the same symbol more than once with a different strategy to run several strategies on it - each trades its own independent slice.</p>
+
+<div class="panel">
+  <h2>Add to watchlist</h2>
+  <form method="post" action="{{ url_for('watchlist_add') }}">
+    <div class="form-add">
+      <div>
+        <div class="field">
+          <label for="symbol">Symbol</label>
+          <input type="text" id="symbol" name="symbol" placeholder="AAPL" required style="text-transform:uppercase">
+        </div>
+        <div class="field">
+          <label for="strategy_key">Strategy</label>
+          <select id="strategy_key" name="strategy_key" onchange="showParams(this.value)">
+            {% for s in strategies %}
+            <option value="{{ s.key }}">{{ s.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <p class="muted" id="strategy-desc" style="font-size:0.82rem; margin-top:-6px;"></p>
+        <div class="field-row">
+          <div class="field">
+            <label for="risk_pct">Risk % per trade</label>
+            <input type="number" step="0.1" min="0.1" max="100" id="risk_pct" name="risk_pct" value="5">
+          </div>
+        </div>
+        <p class="muted" style="font-size:0.78rem;">Optional overrides (leave blank to use global defaults from Settings):</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="atr_window">ATR window</label>
+            <input type="number" id="atr_window" name="atr_window" placeholder="e.g. 14">
+          </div>
+          <div class="field">
+            <label for="atr_stop_mult">ATR stop multiplier</label>
+            <input type="number" step="0.1" id="atr_stop_mult" name="atr_stop_mult" placeholder="e.g. 2.0">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        {% for s in strategies %}
+        <div class="strategy-params" id="params-{{ s.key }}">
+          <p class="muted" style="font-size:0.82rem; margin-top:0;">{{ s.label }} parameters</p>
+          {% for f in s.param_fields %}
+          <div class="field">
+            <label for="param_{{ s.key }}_{{ f.name }}">{{ f.label }}</label>
+            <input type="number" step="{{ '0.1' if f.type == 'float' else '1' }}"
+                   name="param_{{ f.name }}" id="param_{{ s.key }}_{{ f.name }}" value="{{ f.default }}">
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <button type="submit">Add to watchlist</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Current watchlist</h2>
+  <table>
+    <thead><tr><th>Symbol</th><th>Strategy</th><th>Params</th><th class="num">Risk %</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td>{{ e.symbol }}</td>
+        <td>{{ e.strategy_key }}</td>
+        <td class="muted">{% for k, v in e.params.items() %}{{ k }}={{ v }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+        <td class="num">{{ e.risk_pct }}%</td>
+        <td>{{ 'Enabled' if e.enabled else 'Disabled' }}</td>
+        <td style="white-space:nowrap;">
+          <form method="post" action="{{ url_for('watchlist_toggle', entry_id=e.id) }}" style="display:inline">
+            <button type="submit" class="small secondary">{{ 'Disable' if e.enabled else 'Enable' }}</button>
+          </form>
+          <form method="post" action="{{ url_for('watchlist_delete', entry_id=e.id) }}" style="display:inline" onsubmit="return confirm('Delete this watchlist entry?');">
+            <button type="submit" class="small danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr class="empty-row"><td colspan="6">Your watchlist is empty - add a symbol above.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  const descriptions = {
+    {% for s in strategies %}"{{ s.key }}": {{ s.description|tojson }},{% endfor %}
+  };
+  function showParams(key) {
+    document.querySelectorAll('.strategy-params').forEach(el => el.classList.remove('active'));
+    const el = document.getElementById('params-' + key);
+    if (el) el.classList.add('active');
+    document.getElementById('strategy-desc').textContent = descriptions[key] || '';
+  }
+  showParams(document.getElementById('strategy_key').value);
+</script>
+{% endblock %}

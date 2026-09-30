@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Positions - Strategy Trader{% endblock %}
+{% block content %}
+
+<h1>Positions</h1>
+<p class="lede">The app tracks positions per strategy "leg" - Alpaca only sees one combined position per symbol, so the two tables below can differ when several strategies hold the same symbol.</p>
+
+<div class="panel">
+  <h2>Open legs (this app's ledger)</h2>
+  <table>
+    <thead><tr><th>Symbol</th><th>Strategy</th><th class="num">Qty</th><th class="num">Entry price</th><th>Entry date</th><th class="num">Stop</th><th class="num">ATR at entry</th></tr></thead>
+    <tbody>
+      {% for leg in open_legs %}
+      <tr>
+        <td>{{ leg.symbol }}</td>
+        <td>{{ leg.strategy_key }}</td>
+        <td class="num">{{ leg.qty }}</td>
+        <td class="num">${{ "%.2f"|format(leg.entry_price) }}</td>
+        <td>{{ leg.entry_date }}</td>
+        <td class="num">{{ "$%.2f"|format(leg.stop_price) if leg.stop_price else "—" }}</td>
+        <td class="num">{{ "%.2f"|format(leg.atr_at_entry) if leg.atr_at_entry else "—" }}</td>
+      </tr>
+      {% else %}
+      <tr class="empty-row"><td colspan="7">No open legs.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="panel">
+  <h2>Alpaca account positions</h2>
+  {% if broker_error %}
+    <div class="flash error">Couldn't reach Alpaca: {{ broker_error }}</div>
+  {% endif %}
+  <table>
+    <thead><tr><th>Symbol</th><th class="num">Qty</th><th class="num">Avg entry</th><th class="num">Market value</th><th class="num">Unrealized P/L</th></tr></thead>
+    <tbody>
+      {% for p in broker_positions %}
+      <tr>
+        <td>{{ p.symbol }}</td>
+        <td class="num">{{ p.qty }}</td>
+        <td class="num">${{ "%.2f"|format(p.avg_entry_price) }}</td>
+        <td class="num">{{ "$%.2f"|format(p.market_value) if p.market_value is not none else "—" }}</td>
+        <td class="num {{ 'pos' if p.unrealized_pl and p.unrealized_pl >= 0 else 'neg' }}">
+          {{ "$%.2f"|format(p.unrealized_pl) if p.unrealized_pl is not none else "—" }}
+        </td>
+      </tr>
+      {% else %}
+      <tr class="empty-row"><td colspan="5">No open positions at Alpaca.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,7 @@
+Flask==3.0.3
+alpaca-py==0.33.1
+pandas==2.2.2
+APScheduler==3.10.4
+python-dotenv==1.0.1
+pytz==2024.1
+gunicorn==22.0.0

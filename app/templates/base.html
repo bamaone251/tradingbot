@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Trading Bot{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="shell">
+  <nav class="topnav">
+    <span class="brand">📈 Strategy Trader</span>
+    <a class="navlink {{ 'active' if request.endpoint == 'home' }}" href="{{ url_for('home') }}">Dashboard</a>
+    <a class="navlink {{ 'active' if request.endpoint == 'watchlist' }}" href="{{ url_for('watchlist') }}">Watchlist</a>
+    <a class="navlink {{ 'active' if request.endpoint == 'positions' }}" href="{{ url_for('positions') }}">Positions</a>
+    <a class="navlink {{ 'active' if request.endpoint == 'history' }}" href="{{ url_for('history') }}">History</a>
+    <a class="navlink {{ 'active' if request.endpoint == 'settings' }}" href="{{ url_for('settings') }}">Settings</a>
+    <span class="spacer"></span>
+    <span class="badge {{ 'paper' if paper_mode else 'live' }}">{{ 'Paper' if paper_mode else 'LIVE $$$' }}</span>
+    <span class="badge {{ 'on' if trading_enabled else 'off' }}">{{ 'Trading ON' if trading_enabled else 'Trading PAUSED' }}</span>
+  </nav>
+
+  {% if not credentials_configured %}
+    <div class="flash error">Alpaca API credentials aren't set yet. Fill in ALPACA_API_KEY_ID / ALPACA_API_SECRET_KEY in your .env file and restart the app.</div>
+  {% endif %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+</body>
+</html>
